@@ -1,3 +1,3 @@
-# bardic-space
+# le-codex-portfolio
 
-A new version of the public Bardic.Space website (portfolio of personal projects)
+A new version of the public Le-Codex.ch website (portfolio of personal projects)
