@@ -5,19 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- ========== SEO ========== -->
-  <title>Bardic.Space Créations – Développeur web & créateur de contenu en Suisse romande</title>
-  <meta name="description" content="Lucien, développeur web et créateur de contenu en Suisse. Sites WordPress, applications Vue.js, vidéos et projets enracinés : des créations utiles, humaines et bien faites.">
-  <meta name="author" content="Prénom Nom">
+  <title>Le Codex (anciennement Bardic.Space) – Développement Web et création de contenu en Suisse romande</title>
+  <meta name="description" content="Développeur web et créateur de contenu en Suisse. Sites WordPress, applications Vue.js, vidéos et projets enracinés : des créations utiles, humaines, qui redonnent du sens.">
+  <meta name="author" content="Lucius Barde">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://www.bardic.space/">
+  <link rel="canonical" href="https://www.le-codex.ch/">
+  <link rel="icon" type="image/png" href="img/favicon.png">
 
   <!-- Open Graph / Twitter -->
   <meta property="og:type" content="website">
   <meta property="og:locale" content="fr_CH">
-  <meta property="og:title" content="Prénom Nom – Développeur web & créateur de contenu">
+  <meta property="og:title" content="Lucien P. – Développeur web & créateur de contenu">
   <meta property="og:description" content="Des créations web et vidéo avec du sens, faites par un humain, avec les bons outils.">
-  <meta property="og:image" content="https://www.bardic.space/images/og-cover.jpg">
-  <meta property="og:url" content="https://www.bardic.space">
+  <meta property="og:image" content="https://www.le-codex.ch/images/og-cover.jpg">
+  <meta property="og:url" content="https://www.le-codex.ch">
   <meta name="twitter:card" content="summary_large_image">
 
   <!-- Données structurées (JSON-LD) -->
@@ -26,16 +27,40 @@
     "@context": "https://schema.org",
     "@type": "Person",
     "name": "Lucien P.",
-    "url": "https://www.bardic.space",
+    "url": "https://www.le-codex.ch",
     "jobTitle": "Développeur web et créateur de contenu",
     "address": { "@type": "PostalAddress", "addressCountry": "CH", "addressRegion": "Valais" },
-    "knowsAbout": ["PHP", "WordPress", "Vue.js", "Next.js", "JavaScript", "SQL", "Édition vidéo", "Création de contenu"],
+    "knowsAbout": ["PHP", "WordPress", "Vue.js", "Next.js", "JavaScript", "SQL", "Édition vidéo", "Composition musicale et arrangement" "Création de contenu"],
     "sameAs": [
       "https://github.com/lucius-barde",
-      "https://www.youtube.com/@BardicSpace"
+      "https://www.youtube.com/@LeCodexCH"
     ]
   }
   </script>
+
+  <!-- Mailto Encypter -->
+  <script type="text/javascript"> <!--
+  function UnCryptMailto( s )
+  {
+      var n = 0;
+      var r = "";
+      for( var i = 0; i < s.length; i++)
+      {
+          n = s.charCodeAt( i );
+          if( n >= 8364 )
+          {
+              n = 128;
+          }
+          r += String.fromCharCode( n - 1 );
+      }
+      return r;
+  }
+
+  function linkTo_UnCryptMailto( s )
+  {
+      location.href=UnCryptMailto( s ) + "?subject=Contact%20depuis%20le%20site%20le-codex.ch";
+  }
+  // --> </script>
 
   <style>
     /* ========== VARIABLES ========== */
@@ -111,8 +136,8 @@
       height: 100%; display: flex; align-items: center; justify-content: space-between;
       padding: 0 1.25rem;
     }
-    .logo { font-family: var(--font-title); font-size: 1.3rem; font-weight: 700; color: var(--text); }
-    .logo span { color: var(--accent); }
+    .logo { display: inline-flex; align-items: center; gap: .55rem; font-family: var(--font-title); font-size: 1.3rem; font-weight: 700; color: var(--text); }
+    .logo img { width: 36px; height: 36px; object-fit: contain; }
     .nav-links { display: flex; gap: 1.75rem; list-style: none; }
     .nav-links a { color: var(--text); font-weight: 500; position: relative; padding: .25rem 0; }
     .nav-links a::after {
@@ -211,7 +236,7 @@
       max-height: 90vh; overflow-y: auto; position: relative;
       animation: popIn .3s ease;
     }
-    .modal-box img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+    .modal-box img { width: 100%; height: auto; max-height: 60vh; object-fit: contain; border: 8px solid #fff; background: var(--bg-alt); display: block; }
     .modal-content { padding: 1.75rem; }
     .modal-content h3 { font-size: 1.6rem; margin: .3rem 0 .8rem; }
     .modal-content p { margin-bottom: 1rem; color: var(--text-soft); }
@@ -292,7 +317,7 @@
   <!-- ========== NAVBAR ========== -->
   <header class="navbar">
     <div class="container">
-      <a href="#accueil" class="logo">Bardic.Space Créations</a>
+      <a href="#accueil" class="logo"><img src="img/le-codex-logo-128px.png" alt="">Le Codex</a>
       <button class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-links"><span></span></button>
       <nav aria-label="Navigation principale">
         <ul class="nav-links" id="nav-links">
@@ -326,7 +351,7 @@
         </div>
         <div class="hero-photo reveal">
           <!-- TODO: remplacer par ta photo -->
-          <img src="https://placehold.co/600x600/f1ebe0/16305a?text=Ta+photo" alt="Portrait de Prénom Nom" width="600" height="600" fetchpriority="high">
+          <img src="https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/bardicspacecreations.jpg" alt="Portrait de Lucien" width="600" height="600" fetchpriority="high">
         </div>
       </div>
     </section>
@@ -348,7 +373,7 @@
           <article class="manifesto-card reveal">
             <div class="icon" aria-hidden="true">🏔️</div>
             <h3>Du contenu enraciné</h3>
-            <p>Patois, chants, paysages, vie locale : ce qui nous ressemble ne se génère pas, ça se collecte et ça se transmet.</p>
+            <p>Patois, chants, paysages, vie locale : ce qui nous ressemble se collecte et se transmet.</p>
           </article>
           <article class="manifesto-card reveal">
             <div class="icon" aria-hidden="true">🤝</div>
@@ -364,8 +389,12 @@
       <div class="container">
         <h2 class="section-title reveal">Mes projets</h2>
         <p class="section-intro reveal">
-          Ce site présente surtout des projets personnels, nés d'une passion, d'un besoin, ou juste d'une envie de détendre l'auditoire.
-          Cliquez sur une carte pour en savoir plus.
+          Titulaire d'un CFC et d'un diplôme ES obtenus en Suisse dans les domaines de l'informatique et du multimédia, j'ai travaillé principalement en agence sur du développement backend et du support technique, des tâches difficilement présentables en visuel.
+          <br /><br />
+          <b>C'est la raison pour laquelle ce site présente surtout des projets personnels,</b> nés d'une passion, d'un besoin, ou juste d'une envie de détendre l'auditoire.
+        </p>
+        <p class="section-intro reveal">
+            Cliquez sur une carte pour en savoir plus.
         </p>
 
         <div class="filters reveal" role="group" aria-label="Filtrer les projets">
@@ -391,14 +420,17 @@
           <article class="service reveal">
             <h3>Sites & applications web</h3>
             <p>Sites vitrines WordPress, applications Vue.js / Next.js, back-end PHP et bases de données SQL. Du sur-mesure, maintenable et documenté.</p>
+            <p><strong>💰 CHF 60 / heure</strong> <small>(à titre indicatif)</small></p>
           </article>
           <article class="service reveal">
             <h3>Vidéo, audio & image</h3>
             <p>Montage, captation sonore, illustrations et habillage : de quoi donner une vraie voix à votre association, votre commerce ou votre projet.</p>
+            <p><strong>💰 CHF 400 à 600 / mois</strong> <small>(à titre indicatif)</small></p>
           </article>
           <article class="service reveal">
             <h3>Hébergement & support</h3>
-            <p>Administration de serveurs web et VPS, mises à jour, dépannage et accompagnement technique pour rester sereine après la mise en ligne.</p>
+            <p>Administration de serveurs web et VPS, mises à jour, dépannage et accompagnement technique pour rester serein après la mise en ligne.</p>
+            <p><strong>💰 CHF 120 / mois</strong> <small>(à titre indicatif)</small></p>
           </article>
         </div>
 
@@ -418,47 +450,52 @@
         <div class="contact-info reveal">
           <h2 class="section-title">Parlons-en</h2>
           <p>Un projet de site, une vidéo, une idée un peu folle ? Écrivez-moi, je réponds en général sous quelques jours.</p>
-          <p>📍 Valais, Suisse<br>
-             ✉️ <a href="mailto:contact@exemple.ch">contact@exemple.ch</a></p>
+          <p>Pour demander à contribuer au <a href="https://lexique-romand-vuejs.vercel.app" target="_blank">Lexique Romand</a>, c'est aussi ici.</p>
+          <p><strong>👤 Lucien P.</strong>
+             📍 Valais, Suisse<br>
+             ✉️ <a href="javascript:linkTo_UnCryptMailto('nbjmup;jogpAmf.dpefy/di');">𝔦𝔫𝔣𝔬@𝔩𝔢-𝔠𝔬𝔡𝔢𝔵.𝔠𝔥</a></p>
+          <p>
+              <a href="javascript:linkTo_UnCryptMailto('nbjmup;jogpAmf.dpefy/di');" class="btn btn-primary">Contactez-moi</a>
+          </p>
           <p>
             <a href="https://github.com/lucius-barde" target="_blank" rel="noopener">GitHub</a> ·
-            <a href="https://www.youtube.com/@BardicSpace" target="_blank" rel="noopener">YouTube</a>
+            <a href="https://www.youtube.com/@LeCodexCH" target="_blank" rel="noopener">YouTube</a>
           </p>
         </div>
 
-        <form id="contact-form" class="reveal" novalidate>
+        <!--<form id="contact-form" class="reveal" novalidate>
           <div class="field">
             <label for="name">Nom</label>
-            <input type="text" id="name" name="name" required autocomplete="name">
+            <input type="text" id="name" name="name" required autocomplete="name"  disabled="disabled">
           </div>
           <div class="field">
             <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" required autocomplete="email">
+            <input type="email" id="email" name="email" required autocomplete="email"  disabled="disabled">
           </div>
           <div class="field">
             <label for="subject">Sujet</label>
-            <select id="subject" name="subject">
+            <select id="subject" name="subject"  disabled="disabled">
               <option>Site web / application</option>
               <option>Vidéo / audio</option>
               <option>Support / hébergement</option>
-              <option>Contribuer au Lexique Romand</option>
+              <option>Demande de contribution au Lexique Romand</option>
               <option>Autre</option>
             </select>
           </div>
           <div class="field">
             <label for="message">Message</label>
-            <textarea id="message" name="message" required></textarea>
+            <textarea id="message" name="message" required  disabled="disabled"></textarea>
           </div>
           <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <button type="submit" class="btn btn-primary">Envoyer le message</button>
+          <button type="submit" class="btn btn-secondary" disabled="disabled">Formulaire temporairement indisponible</button>
           <p class="form-msg" id="form-msg" role="status">Merci ! (Simulation front-end : aucun message n'est réellement envoyé.)</p>
-        </form>
+        </form>-->
       </div>
     </section>
   </main>
 
   <footer>
-    <p>© <span id="year"></span> Bardic.Space · Créé en Suisse 🇨🇭 · <a href="#accueil">Retour en haut ↑</a></p>
+    <p>© <span id="year"></span> le-codex.ch · Créé en Suisse 🇨🇭 · <a href="#accueil">Retour en haut ↑</a></p>
   </footer>
 
   <!-- ========== MODALE ========== -->
@@ -482,15 +519,65 @@
     const ph = (t) => `https://placehold.co/800x500/f1ebe0/16305a?text=${encodeURIComponent(t)}`;
 
     const projects = [
+    {
+      id: 16, cat: "video", catLabel: "Vidéo · YouTube",
+      title: "Vidéo: 45 trains insolites en Europe",
+      short: "À la découverte d'une ligne de chemin de fer insolite dans chaque pays du continent européen. Pour la chaîne Lucius 360.",
+      img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-video-45-trains-insolites.jpg',
+      tags: ["YouTube", "CapCut", "Illustration", "Storytelling"],
+      desc: [
+        "À la découverte d'une ligne de chemin de fer insolite dans chaque pays du continent européen. Pour la chaîne Lucius 360. Une série de vidéos sur les faits étonnants de la Suisse et de l'Europe, avec un avatar et des icônes photoréalistes créés sur-mesure pour donner une identité visuelle propre à la série.",
+        "Montage réalisé avec CapCut."
+      ],
+      links: [{ label: "Voir la série", url: "https://www.youtube.com/watch?v=0Wd0F4l49II" }]
+    },
+    {
+      id: 12, cat: "video", catLabel: "Vidéo · YouTube",
+      title: "Vidéos GoPro Max 360°",
+      short: "Vidéos panoramiques interactives filmées avec une GoPro MAX 360.",
+      img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-web-videos360.webp',
+      tags: ["YouTube", "CapCut", "Illustration", "Storytelling"],
+      desc: [
+        "Ma chaîne Lucius360 contient plusieurs vidéos panoramiques interactives filmées avec une GoPro MAX 360: vlogs interactifs, road trips à vélos, montée du Kilomètre Vertical de Fully, ou une immersion dans le carnaval du Lötschental.",
+        "Montages réalisés avec ShotCut ou CapCut."
+      ],
+      links: [{ label: "Voir la série", url: "https://www.youtube.com/watch?v=lDWfcnJG2hM" }]
+    },
+    {
+      id: 4, cat: "video", catLabel: "Vidéo · YouTube",
+      title: "Vidéo: 26 faits insolites sur les frontières cantonales suisses",
+      short: "Découvrez des bizarreries sur les frontières cantonales que même les Suisses ignorent, comme la frontière terrestre de 6 m de large entre Neuchâtel et Fribourg. Pour la chaîne Lucius 360.",
+      img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-video-frontieres-cantonales-insolites.webp',
+      tags: ["YouTube", "CapCut", "Illustration", "Storytelling"],
+      desc: [
+        "Découvrez des bizarreries sur les frontières cantonales que même les Suisses ignorent, comme la frontière terrestre de 6 m de large entre Neuchâtel et Fribourg. Pour la chaîne Lucius 360. Une série de vidéos sur les faits étonnants de la Suisse et de l'Europe, avec un avatar et des icônes photoréalistes créés sur-mesure pour donner une identité visuelle propre à la série.",
+        "Montage réalisé avec CapCut."
+      ],
+      links: [{ label: "Voir la série", url: "https://www.youtube.com/watch?v=0Wd0F4l49II" }]
+    },
+    {
+      id: 3, cat: "web", catLabel: "Web · WordPress → Vue.js",
+      title: "Recueil de chants de Suisse, de France et d'Europe",
+      short: "Paroles, partitions et traductions, classées par pays.",
+      img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-bie.jpg',
+      tags: ["Vue.js", "WordPress", "Partitions", "Traductions", "Patrimoine musical"],
+      desc: [
+        "Un recueil en ligne de chants de Suisse et d'Europe, triés par pays, avec paroles, partitions et traductions.",
+        "La première version a été construite avec WordPress ; la deuxième, réécrite en Vue.js, offre une navigation plus fluide, une meilleure expérience de recherche, et une base de données mieux adaptée pour l'affichage trié et filtré des chants."
+      ],
+      links: [{ label: "Voir le site", url: "https://www.bardsinexile.org" }]
+    },
+
       {
         id: 1, cat: "web", catLabel: "Web · Application",
-        title: "Gestion de budget & comptabilité minimale",
+        title: "Gestion de budget & comptabilité simple",
         short: "Saisir ses dépenses en deux clics depuis le mobile.",
-        img: ph("Budget app"),
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-web-budget.webp',
         tags: ["Mobile first", "Budget", "Comptabilité", "Open source"],
         desc: [
-          "Des applications personnelles pensées pour une seule chose : ajouter une information financière sur le vif, depuis son téléphone, sans ouvrir un tableur ni se perdre dans des menus.",
-          "Le code source est disponible sur GitHub ; l'accès à l'application elle-même se fait uniquement sur demande."
+          "J'ai créé cette application pour combler un besoin : pouvoir ajouter une information financière sur le vif, depuis mon téléphone directement après un achat, sans devoir ouvrir un tableur et zoomer sur des cellules.",
+          "Une application annexe similaire permet de gérer une comptabilité minimale.",
+          "Le code source est disponible sur GitHub ; l'accès à l'application n'est pas encore ouvert au public."
         ],
         links: [{ label: "Code source (GitHub)", url: "https://github.com/lucius-barde/lucius-budget-vuejs" }]
       },
@@ -498,67 +585,58 @@
         id: 2, cat: "web", catLabel: "Web · Vue.js",
         title: "Lexique romand interactif",
         short: "Le vocabulaire de Suisse romande, enrichi par ses habitants.",
-        img: ph("Lexique romand"),
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-lexique-romand.webp',
         tags: ["Vue.js", "Participatif", "Patrimoine linguistique", "Suisse romande"],
         desc: [
-          "Un lexique interactif consacré aux expressions et mots propres à la Suisse romande, ouvert aux contributions de toutes et tous.",
-          "Réalisé avec Vue.js, il met l'accent sur une recherche rapide, une navigation agréable et la participation de la communauté."
+          "Un lexique interactif consacré aux expressions et mots propres à la Suisse romande, ouvert à vos contributions.",
+          "Réalisé avec Vue.js, il met l'accent sur une recherche rapide, une navigation agréable et la participation de la communauté.",
+          "Il n’existait pas d’outil de recherche pratique permettant de chercher des termes de Suisse Romande, la plupart des lexiques étant de très vieux sites Web. J’ai donc créé un lexique doté d’un outil de recherche.",
+          "Cet outil créé à des fins éducatives récupère des données de sites externes et les sauvegarde en cache: dans tous les cas la source de ces données est indiquée. Le but n’est en aucun cas de plagier le travail fait par d’autres; au contraire, il s’agit d’en créer une copie de sécurité au cas où les sites sources disparaîtraient."
         ],
-        links: [{ label: "Voir le site", url: "https://github.com/lucius-barde/lucius-compta-vuejs" }]
+        links: [{ label: "Voir le site", url: "https://lexique-romand-vuejs.vercel.app" }]
       },
-      {
-        id: 3, cat: "web", catLabel: "Web · WordPress → Vue.js",
-        title: "Recueil de chants de Suisse et d'Europe",
-        short: "Paroles, partitions et traductions, classées par pays.",
-        img: ph("Recueil de chants"),
-        tags: ["Vue.js", "WordPress", "Partitions", "Traductions", "Patrimoine musical"],
-        desc: [
-          "Un recueil en ligne de chants de Suisse et d'Europe, triés par pays, avec paroles, partitions et traductions.",
-          "La première version a été construite avec WordPress ; la deuxième, réécrite en Vue.js, offre une navigation plus fluide et une meilleure expérience de recherche."
-        ],
-        links: [{ label: "Voir le site", url: "https://www.bardsinexile.org" }]
-      },
-      {
-        id: 4, cat: "video", catLabel: "Vidéo · YouTube",
-        title: "Faits insolites",
-        short: "Curiosités sur la Suisse et l'Europe, avec illustrations sur-mesure. Une série pour la chaîne Lucius 360.",
-        img: ph("Faits insolites"),
-        tags: ["YouTube", "CapCut", "Illustration", "Storytelling"],
-        desc: [
-          "Une série de vidéos sur les faits étonnants de la Suisse et de l'Europe, avec un avatar et des icônes photoréalistes créés sur-mesure pour donner une identité visuelle propre à la série.",
-          "Montage réalisé avec CapCut."
-        ],
-        links: [{ label: "Voir la série", url: "https://www.youtube.com/watch?v=0Wd0F4l49II" }]
-      },
+
       {
         id: 5, cat: "video", catLabel: "Vidéo · Vlog",
         title: "Borsod, une partie méconnue de la Hongrie",
         short: "Découverte d'une région avec un guide touristique local.",
-        img: ph("Vlog Hongrie"),
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-video-borsod-hongrie.webp',
         tags: ["YouTube", "ShotCut", "Documentaire", "Voyage", "Hongrie"],
         desc: [
-          "Une série de découverte de la région de Borsod [/ˈborʃod/], en Hongrie, accompagnée d'un guide touristique local qui partage son territoire et ses adresses.",
+          "Une série de découverte de la région de Borsod [/ˈborʃod/], en Hongrie, accompagnée d'un guide touristique franco-hongrois établi sur place qui partage son territoire et ses adresses.",
           "Montage réalisé avec ShotCut."
         ],
         links: [{ label: "Voir la série", url: "https://www.youtube.com/watch?v=m-MKXCcq8M8" }]
       },
       {
         id: 6, cat: "video", catLabel: "Vidéo · Tutoriels",
-        title: "Tutoriels multimédia open source",
-        short: "LMMS pour l'audio, ShotCut pour la vidéo.",
-        img: ph("Tutos LMMS & ShotCut"),
-        tags: ["Open source", "LMMS", "ShotCut", "Pédagogie", "Audio", "Vidéo"],
+        title: "Tuto montage vidéo open-source",
+        short: "Un tuto pour Shotcut en 6 vidéos.",
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/tuto_shotcut_video1.jpg',
+        tags: ["Open source", "Shotcut", "Pédagogie", "Vidéo"],
         desc: [
-          "Une série de tutoriels pour apprendre à créer sans dépendre de logiciels payants : LMMS pour la production musicale et ShotCut pour le montage vidéo.",
+          "Une série de tutoriels pour apprendre à créer avec des logiciels libres : LMMS pour la production musicale et ShotCut pour le montage vidéo.",
+          "Des explications pas à pas, accessibles aux débutants, basées sur des cas d'utilisation réels."
+        ],
+        links: [{ label: "Voir le tutoriel", url: "https://www.youtube.com/watch?v=HovfyrNmldo&list=PLSsNuyEN8Drdxcr-cS73rJWfdXXVdhCFD" }]
+      },
+      {
+        id: 14, cat: "video", catLabel: "Vidéo · Tutoriels",
+        title: "Tuto composition musicale open-source",
+        short: "Un tuto pour LMMS en 3 vidéos, orienté folk/médiéval.",
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/tuto_lmms_video1_2.jpg',
+        tags: ["Open source", "LMMS", "Pédagogie", "Audio", "Vidéo"],
+        desc: [
+          "Une série de tutoriels pour apprendre à créer avec des logiciels libres : LMMS pour la production musicale et ShotCut pour le montage vidéo.",
           "Des explications pas à pas, accessibles aux débutants."
         ],
-        links: [{ label: "Voir les tutoriels", url: "https://www.youtube.com/@BardicSpace/playlists" }]
+        links: [{ label: "Voir le tutoriel", url: "https://www.youtube.com/watch?v=qcjT-ZrkGgs&list=PLSsNuyEN8DrcgET0LEmY6SnfKLt5P4okN" }]
       },
       {
         id: 7, cat: "video", catLabel: "Vidéo · Vlog",
         title: "Blatten, 1 an après l'éboulement",
         short: "Quels projets d'avenir pour le village ?",
-        img: ph("Blatten, 1 an après"),
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-video-blatten.webp',
         tags: ["YouTube", "CapCut", "Vlog voyage", "Valais", "Reportage"],
         desc: [
           "Une vidéo qui revient sur Blatten, un an après l'éboulement, et s'intéresse aux projets d'avenir de la commune et de ses habitants.",
@@ -570,7 +648,7 @@
         id: 8, cat: "video", catLabel: "Vidéo · Série voyage",
         title: "Tour des Cantons Suisses",
         short: "Un canton après l'autre, à la découverte de la Suisse.",
-        img: ph("Tour des Cantons"),
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-tourdescantons.webp',
         tags: ["YouTube", "ShotCut", "Voyage", "Suisse", "Cantons"],
         desc: [
           "Une série de voyages à travers les cantons suisses, pour découvrir la diversité des paysages, des traditions et des lieux souvent méconnus.",
@@ -580,9 +658,9 @@
       },
       {
         id: 9, cat: "audio", catLabel: "Web · Audio · YouTube",
-        title: "Site de chorale (Valais)",
-        short: "Site web, captation sonore des concerts et chaîne YouTube.",
-        img: ph("Site de chorale"),
+        title: "Site Web pour une chorale",
+        short: "Site web, captation sonore des concerts et chaîne YouTube pour une chorale du Valais.",
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-web-edf.jpg',
         tags: ["WordPress", "Captation sonore", "YouTube", "Association", "Valais"],
         desc: [
           "Réalisation du site web d'une chorale valaisanne, avec enregistrement sonore des concerts et gestion de leur chaîne YouTube.",
@@ -594,7 +672,7 @@
         id: 10, cat: "web", catLabel: "Web · WordPress",
         title: "Site d'un atelier de couture (Valais)",
         short: "Une vitrine soignée pour un savoir-faire artisanal.",
-        img: ph("Atelier de couture"),
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-web-adj.jpg',
         tags: ["WordPress", "Site vitrine", "Artisanat", "SEO local", "Valais"],
         desc: [
           "Un site vitrine WordPress pour un atelier de couture valaisan, conçu pour mettre en valeur le travail artisanal et faciliter la prise de contact.",
@@ -606,26 +684,30 @@
         id: 11, cat: "web", catLabel: "Web · PHP",
         title: "Petites annonces par parrainage (France)",
         short: "Un site d'annonces fondé sur la confiance entre membres.",
-        img: ph("Annonces parrainage"),
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-web-lrp2.jpg',
         tags: ["PHP", "Framework", "Parrainage", "Petites annonces", "Back-end"],
         desc: [
           "Un site de petites annonces où l'on entre uniquement par parrainage, pour favoriser la confiance entre membres.",
-          "J'en ai été un des premiers développeurs, avec le framework SlimPHP. Je n'interviens plus sur le projet aujourd'hui."
+          "J'ai fait partie de l'équipe des premiers développeurs, avec le framework SlimPHP, mais je n'interviens plus sur le projet aujourd'hui."
         ],
         links: [{ label: "Voir le site", url: "https://www.rucher-patriote.fr" }]
       },
       {
-        id: 12, cat: "video", catLabel: "Vidéo · YouTube",
-        title: "Montage vidéo 360°",
-        short: "Vidéos panoramiques interactives filmées avec une GoPro MAX 360.",
-        img: ph("Faits insolites"),
-        tags: ["YouTube", "CapCut", "Illustration", "Storytelling"],
+        id: 13, cat: "audio", catLabel: "Audio · YouTube",
+        title: "Livres audio suisses et francophones",
+        short: "Livres audio exclusifs de Charles-Ferdinand Ramuz, Alfred Cérésole, et autres, en streaming.",
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-livre-audio.jpg',
+        tags: ["YouTube", "CapCut", "Audio"],
         desc: [
-          "Ma chaîne Lucius360 contient plusieurs vidéos panoramiques interactives filmées avec une GoPro MAX 360: vlogs interactifs, road trips à vélos, ou, en lien ici, une immersion dans le carnaval du Lötschental.",
-          "Montages réalisés avec ShotCut ou CapCut."
+          "Dans le but de préserver et de donner une seconde vie à des livres anciens, j’ai pris l’initiative d’enregistrer leur version audio avec ma propre voix.",
+          "Étant donné mon accent suisse, j’ai trouvé pertinent de focaliser sur de la littérature suisse, afin de retransmettre l’histoire avec le parler local.",
+          "J’ai peut-être eu la chance de découvrir C.F. Ramuz non pas au collège mais à 30 ans, ce qui m’a permis d’être dans de bonnes dispositions pour comprendre, apprécier et retransmettre ses écrits. Dans la foulée, j’ai aussi découvert Alfred Cérésole et ses écrits patriotiques qui vont des contes et légendes au récit de soldats de la guerre franco-prussienne.",
+          "Dans mes versions, certaines expressions sont parfois modernisées, et des « notes du lecteur » sont ajoutées, afin de permettre une réelle compréhension.",
+          "Je propose mes livres audio en streaming sur YouTube, intégralement illustrés. Pour le moment je ne suis pas encore sur Amazon Audible ou autres plateformes, car je tiens à ma liberté de ton. Pour éviter les pubs ou écouter hors-ligne, je propose des solutions ci-dessous."
         ],
         links: [{ label: "Voir la série", url: "https://www.youtube.com/watch?v=lDWfcnJG2hM" }]
       },
+
     ];
 
     /* ========== RENDU DE LA GALERIE ========== */
