@@ -519,6 +519,7 @@
     const ph = (t) => `https://placehold.co/800x500/f1ebe0/16305a?text=${encodeURIComponent(t)}`;
 
     const projects = [
+
     {
       id: 16, cat: "video", catLabel: "Vidéo · YouTube",
       title: "Vidéo: 45 trains insolites en Europe",
@@ -568,19 +569,19 @@
       links: [{ label: "Voir le site", url: "https://www.bardsinexile.org" }]
     },
 
-      {
-        id: 1, cat: "web", catLabel: "Web · Application",
-        title: "Gestion de budget & comptabilité simple",
-        short: "Saisir ses dépenses en deux clics depuis le mobile.",
-        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-web-budget.webp',
-        tags: ["Mobile first", "Budget", "Comptabilité", "Open source"],
-        desc: [
-          "J'ai créé cette application pour combler un besoin : pouvoir ajouter une information financière sur le vif, depuis mon téléphone directement après un achat, sans devoir ouvrir un tableur et zoomer sur des cellules.",
-          "Une application annexe similaire permet de gérer une comptabilité minimale.",
-          "Le code source est disponible sur GitHub ; l'accès à l'application n'est pas encore ouvert au public."
-        ],
-        links: [{ label: "Code source (GitHub)", url: "https://github.com/lucius-barde/lucius-budget-vuejs" }]
-      },
+    {
+      id: 17, cat: "web", catLabel: "Web · Application",
+      title: "Mini application de composition musicale",
+      short: "Permet de saisir des mélodies rapidement depuis le PC ou le mobile.",
+      img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/lucius-synth.webp',
+      tags: ["Mobile first", "Budget", "Comptabilité", "Open source"],
+      desc: [
+        "J'ai créé cette application pour pouvoir noter des idées de composition musicale lorsque j'ai ni PC ni carnet.",
+        "Le code source est disponible sur GitHub ; l'application est accessible mais la sauvegarde de fichiers n'est pas encore disponible au public."
+      ],
+      links: [{ label: "Accéder à l'application", url: "https://lucius-synth.vercel.app" }]
+    },
+
       {
         id: 2, cat: "web", catLabel: "Web · Vue.js",
         title: "Lexique romand interactif",
@@ -595,7 +596,19 @@
         ],
         links: [{ label: "Voir le site", url: "https://lexique-romand-vuejs.vercel.app" }]
       },
-
+      {
+        id: 1, cat: "web", catLabel: "Web · Application",
+        title: "Gestion de budget & comptabilité simple",
+        short: "Saisir ses dépenses en deux clics depuis le mobile.",
+        img: 'https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-web-budget.webp',
+        tags: ["Mobile first", "Budget", "Comptabilité", "Open source"],
+        desc: [
+          "J'ai créé cette application pour combler un besoin : pouvoir ajouter une information financière sur le vif, depuis mon téléphone directement après un achat, sans devoir ouvrir un tableur et zoomer sur des cellules.",
+          "Une application annexe similaire permet de gérer une comptabilité minimale.",
+          "Le code source est disponible sur GitHub ; l'accès à l'application n'est pas encore ouvert au public."
+        ],
+        links: [{ label: "Code source (GitHub)", url: "https://github.com/lucius-barde/lucius-budget-vuejs" }]
+      },
       {
         id: 5, cat: "video", catLabel: "Vidéo · Vlog",
         title: "Borsod, une partie méconnue de la Hongrie",
