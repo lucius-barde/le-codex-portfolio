@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Codex – Web development and creative projects</title>
+  <meta name="description" content="Web development, video and creative projects by Lucien P. in Valais, Switzerland.">
+  <meta name="author" content="Lucien P.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.le-codex.ch/en/">
+  <link rel="icon" type="image/png" href="../img/favicon.png">
+
+      <!-- Mailto Encypter -->
+      <script type="text/javascript"> <!--
+      function UnCryptMailto( s )
+      {
+          var n = 0;
+          var r = "";
+          for( var i = 0; i < s.length; i++)
+          {
+              n = s.charCodeAt( i );
+              if( n >= 8364 )
+              {
+                  n = 128;
+              }
+              r += String.fromCharCode( n - 1 );
+          }
+          return r;
+      }
+
+      function linkTo_UnCryptMailto( s )
+      {
+          location.href=UnCryptMailto( s ) + "?subject=Contact%20from%20le-codex.ch%20website";
+      }
+      // --> </script>
+
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="navbar">
+    <div class="container">
+      <a href="#home" class="logo"><img src="../img/le-codex-logo-128px.png" alt="">Le Codex</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links"><span></span></button>
+      <nav aria-label="Main navigation">
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#approach">Approach</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="../index.html" lang="fr">FR</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="reveal">
+          <span class="hero-tag">🇨🇭 Web developer &amp; content creator</span>
+          <h1>Human-made creations, <em>for humans.</em></h1>
+          <p>In a world where AI can generate anything in seconds, I focus on what it cannot: meaningful projects rooted in a place, a language and a community. I use the right tools, while keeping people in control.</p>
+          <div class="hero-actions">
+            <a href="#projects" class="btn btn-primary">Explore my projects</a>
+            <a href="#contact" class="btn btn-outline">Let's talk</a>
+          </div>
+        </div>
+        <div class="hero-photo reveal">
+          <img src="https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/bardicspacecreations.jpg" alt="Portrait of Lucien" width="600" height="600" fetchpriority="high">
+        </div>
+      </div>
+    </section>
+
+    <section class="manifesto" id="approach">
+      <div class="container">
+        <h2 class="section-title reveal">Staying human in the age of AI</h2>
+        <p class="section-intro reveal">I am neither for nor against AI: I use it as one tool among many, thoughtfully, and never as a substitute for judgement, curiosity or taste.</p>
+        <div class="manifesto-grid">
+          <article class="manifesto-card reveal">
+            <div class="icon" aria-hidden="true">🛠️</div>
+            <h3>The right tools</h3>
+            <p>AI speeds up tedious work. Ideas, choices, review and sensitivity remain in human hands.</p>
+          </article>
+          <article class="manifesto-card reveal">
+            <div class="icon" aria-hidden="true">🏔️</div>
+            <h3>Rooted in place</h3>
+            <p>Local dialects, songs, landscapes and everyday life: what reflects us deserves to be collected and passed on.</p>
+          </article>
+          <article class="manifesto-card reveal">
+            <div class="icon" aria-hidden="true">🤝</div>
+            <h3>A real person to talk to</h3>
+            <p>Direct communication, time to understand your project, and a website you can actually manage.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects">
+      <div class="container">
+        <h2 class="section-title reveal">Selected projects</h2>
+        <p class="section-intro reveal">I hold Swiss qualifications in IT and multimedia and have mainly worked in agencies on back-end development and technical support. Those tasks are difficult to show visually, so this selection focuses on personal projects born from a passion, a need or simply a wish to entertain.</p>
+        <p class="section-intro reveal"><strong>All videos presented here are in French, with English subtitles or dubbing available.</strong></p>
+        <p class="section-intro reveal">Select a card to learn more.</p>
+        <div class="filters reveal" role="group" aria-label="Filter projects">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="web">Web</button>
+          <button class="filter-btn" data-filter="video">Video</button>
+        </div>
+        <div class="gallery" id="gallery"></div>
+      </div>
+    </section>
+
+    <section class="services" id="services">
+      <div class="container">
+        <h2 class="section-title reveal">How I can help</h2>
+        <p class="section-intro reveal">Three straightforward ways to work together.</p>
+        <div class="services-grid">
+          <article class="service reveal">
+            <h3>Websites &amp; applications</h3>
+            <p>WordPress websites, Vue.js / Next.js applications, PHP back ends and SQL databases. Tailored, maintainable and documented.</p>
+            <p><strong>💰 CHF 60 / hour</strong> <small>(indicative rate)</small></p>
+          </article>
+          <article class="service reveal">
+            <h3>Video, audio &amp; images</h3>
+            <p>Editing, sound recording, illustrations and visual identity to give your association, business or project a voice.</p>
+            <p><strong>💰 CHF 400–600 / month</strong> <small>(indicative rate)</small></p>
+          </article>
+          <article class="service reveal">
+            <h3>Hosting &amp; support</h3>
+            <p>Web and VPS server administration, updates, troubleshooting and technical guidance after launch.</p>
+            <p><strong>💰 CHF 120 / month</strong> <small>(indicative rate)</small></p>
+          </article>
+        </div>
+        <div class="skills reveal" aria-label="Skills">
+          <span class="tag">PHP</span><span class="tag">WordPress</span><span class="tag">Vue.js</span>
+          <span class="tag">Next.js</span><span class="tag">HTML/CSS</span><span class="tag">JavaScript</span>
+          <span class="tag">Git</span><span class="tag">Servers &amp; VPS</span><span class="tag">MySQL / MariaDB</span>
+          <span class="tag">PostgreSQL</span><span class="tag">Supabase</span><span class="tag">Technical support</span>
+          <span class="tag">Video editing</span><span class="tag">Audio</span><span class="tag">Image editing</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="container contact-grid">
+        <div class="contact-info reveal">
+          <h2 class="section-title">Get in touch</h2>
+          <p>A website, a video or an unusual idea? Send me a message; I usually reply within a few days.</p>
+          <p><strong>👤 Lucien P.</strong><br>📍 Valais, Switzerland<br>✉️<a href="javascript:linkTo_UnCryptMailto('nbjmup;jogpAmf.dpefy/di');">𝔦𝔫𝔣𝔬@𝔩𝔢-𝔠𝔬𝔡𝔢𝔵.𝔠𝔥</a></p>
+          <p><a href="javascript:linkTo_UnCryptMailto('nbjmup;jogpAmf.dpefy/di');" class="btn btn-primary">Contactez-moi</a></p>
+          <p><a href="https://github.com/lucius-barde" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.youtube.com/@LeCodexCH" target="_blank" rel="noopener">YouTube</a></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><p>© <span id="year"></span> le-codex.ch · Made in Switzerland 🇨🇭 · <a href="#home">Back to top ↑</a></p></footer>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close" aria-label="Close">×</button>
+      <img id="modal-img" src="" alt="">
+      <div class="modal-content">
+        <span class="card-cat" id="modal-cat"></span>
+        <h3 id="modal-title"></h3>
+        <div class="tags" id="modal-tags"></div>
+        <div id="modal-desc"></div>
+        <div class="modal-links" id="modal-links"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const projects = [
+      {
+        id: 16, cat: "video", catLabel: "Video · YouTube",
+        title: "Video: 45 Unusual Trains in Europe",
+        short: "Discover an unusual railway line in every country across Europe. For the Lucius 360 channel.",
+        img: "https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-video-45-trains-insolites.jpg",
+        tags: ["YouTube", "CapCut", "Illustration", "Storytelling"],
+        desc: [
+          "Discover an unusual railway line in every country across Europe. Made for the Lucius 360 channel, this video is part of a series about surprising facts from Switzerland and Europe, featuring a custom avatar and photorealistic icons that give the series its own visual identity.",
+          "Edited with CapCut. In French, with English subtitles"
+        ],
+        links: [{ label: "Watch the series", url: "https://www.youtube.com/watch?v=0Wd0F4l49II" }]
+      },
+      {
+        id: 12, cat: "video", catLabel: "Video · YouTube",
+        title: "GoPro Max 360° Videos",
+        short: "Interactive panoramic videos filmed with a GoPro MAX 360-degree camera.",
+        img: "https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-web-videos360.webp",
+        tags: ["YouTube", "Shotcut", "CapCut", "360° video"],
+        desc: [
+          "My Lucius360 channel features interactive panoramic videos filmed with a GoPro MAX 360: interactive vlogs, cycling road trips, the climb up Fully's Vertical Kilometer, and an immersive look at the Lötschental carnival.",
+          "Edited with Shotcut or CapCut. Either in French with English subtitles, or raw footage without text."
+        ],
+        links: [{ label: "Watch the series", url: "https://www.youtube.com/watch?v=lDWfcnJG2hM" }]
+      },
+      {
+        id: 4, cat: "video", catLabel: "Video · YouTube",
+        title: "Video: 26 Strange Facts About Switzerland's Cantonal Borders",
+        short: "Unusual facts about cantonal borders—even many Swiss people don't know about them. For the Lucius 360 channel.",
+        img: "https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-video-frontieres-cantonales-insolites.webp",
+        tags: ["YouTube", "CapCut", "Illustration", "Storytelling"],
+        desc: [
+          "Discover surprising facts about Switzerland's cantonal borders that even many Swiss people don't know, such as the 6-metre-wide land border between Neuchâtel and Fribourg. Made for the Lucius 360 channel, this video is part of a series about surprising facts from Switzerland and Europe, with a custom avatar and photorealistic icons created for a distinctive visual identity.",
+          "Edited with CapCut. In French, with English subtitles"
+        ],
+        links: [{ label: "Watch the series", url: "https://www.youtube.com/watch?v=0Wd0F4l49II" }]
+      },
+      {
+        id: 3, cat: "web", catLabel: "Web · WordPress → Vue.js",
+        title: "A Songbook of Switzerland, France and Europe",
+        short: "Lyrics, sheet music and translations, organised by country.",
+        img: "https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-bie.jpg",
+        tags: ["Vue.js", "WordPress", "Sheet music", "Translations", "Musical heritage"],
+        desc: [
+          "An online collection of songs from Switzerland and Europe, organised by country and featuring lyrics, sheet music and translations.",
+          "The first version was built with WordPress. The second, rewritten in Vue.js, offers smoother navigation, a better search experience and a database better suited to sorting and filtering songs.",
+          "Multilingual website in French, English and German"
+        ],
+        links: [{ label: "Visit the website", url: "https://www.bardsinexile.org/en" }]
+      },
+      {
+        id: 17, cat: "web", catLabel: "Web · Application",
+        title: "Mini Music Composition App",
+        short: "Quickly jot down melodies on a computer or mobile device.",
+        img: "https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/lucius-synth.webp",
+        tags: ["Music", "Composition", "Open source", "Mobile"],
+        desc: [
+          "I created this app to capture musical composition ideas when I don't have a computer or notebook with me. The notes are stored in database using the standard ABC-Notation.",
+          "The source code is available on GitHub. The app is accessible, but saving files is not yet available to the public. In French only"
+        ],
+        links: [{ label: "Open the app", url: "https://lucius-synth.vercel.app" }]
+      },
+      {
+        id: 6, cat: "video", catLabel: "Video · Tutorials",
+        title: "Open-Source Video Editing Tutorial",
+        short: "A six-part tutorial series for Shotcut, an open-source video editor that I've been using before switching to CapCut.",
+        img: "https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/tuto_shotcut_video1.jpg",
+        tags: ["Open source", "Shotcut", "Learning", "Video"],
+        desc: [
+          "A series of tutorials for learning to create with free and open-source software: Shotcut for video editing.",
+          "Step-by-step explanations for beginners, based on real-world use cases. In French, with English subtitles"
+        ],
+        links: [{ label: "Watch the tutorial", url: "https://www.youtube.com/watch?v=HovfyrNmldo&list=PLSsNuyEN8Drdxcr-cS73rJWfdXXVdhCFD" }]
+      },
+      {
+        id: 14, cat: "video", catLabel: "Video · Tutorials",
+        title: "Open-Source Music Composition Tutorial",
+        short: "A three-part LMMS tutorial with a folk and medieval focus.",
+        img: "https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/tuto_lmms_video1_2.jpg",
+        tags: ["Open source", "LMMS", "Learning", "Audio", "Video"],
+        desc: [
+          "A series of tutorials for learning to create music with LMMS, a free and open-source music production tool.",
+          "Step-by-step explanations for beginners. In French, with English subtitles"
+        ],
+        links: [{ label: "Watch the tutorial", url: "https://www.youtube.com/watch?v=qcjT-ZrkGgs&list=PLSsNuyEN8DrcgET0LEmY6SnfKLt5P4okN" }]
+      },
+      {
+        id: 7, cat: "video", catLabel: "Video · Vlog",
+        title: "Blatten: One Year After the Landslide",
+        short: "What does the future hold for the village?",
+        img: "https://ierljtkznrwjcvxjrbqv.supabase.co/storage/v1/object/public/le-codex/portfolio-video-blatten.webp",
+        tags: ["YouTube", "CapCut", "Travel vlog", "Valais", "Reportage"],
+        desc: [
+          "A video revisiting Blatten one year after the landslide, looking at the municipality's and its residents' plans for the future.",
+          "Made in a travel-vlog style and edited with CapCut. In French, with English subtitles"
+        ],
+        links: [{ label: "Watch the video", url: "https://www.youtube.com/watch?v=b_Y8FLVszWo" }]
+      }
+    ];
+
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = projects.map(project => `
+      <button class="card reveal" data-cat="${project.cat}" data-id="${project.id}" aria-haspopup="dialog">
+        <div class="card-img"><img data-src="${project.img}" alt="Project preview: ${project.title}" width="800" height="500" loading="lazy"></div>
+        <div class="card-body"><span class="card-cat">${project.catLabel}</span><h3>${project.title}</h3><p>${project.short}</p></div>
+      </button>
+    `).join("");
+
+    const imgObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.onload = () => img.classList.add("loaded");
+        observer.unobserve(img);
+      });
+    }, { rootMargin: "200px" });
+    document.querySelectorAll("img[data-src]").forEach(img => imgObserver.observe(img));
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: .12 });
+    document.querySelectorAll(".reveal").forEach(element => revealObserver.observe(element));
+
+    document.querySelectorAll(".filter-btn").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        const filter = button.dataset.filter;
+        document.querySelectorAll(".card").forEach(card => {
+          card.classList.toggle("hidden", filter !== "all" && card.dataset.cat !== filter);
+        });
+      });
+    });
+
+    const modal = document.getElementById("modal");
+    let lastFocus = null;
+    function openModal(id) {
+      const project = projects.find(item => item.id === Number(id));
+      if (!project) return;
+      lastFocus = document.activeElement;
+      document.getElementById("modal-img").src = project.img;
+      document.getElementById("modal-img").alt = `Project preview: ${project.title}`;
+      document.getElementById("modal-cat").textContent = project.catLabel;
+      document.getElementById("modal-title").textContent = project.title;
+      document.getElementById("modal-tags").innerHTML = project.tags.map(tag => `<span class="tag">${tag}</span>`).join("");
+      document.getElementById("modal-desc").innerHTML = project.desc.map(text => `<p>${text}</p>`).join("");
+      document.getElementById("modal-links").innerHTML = project.links.map(link => `<a class="btn btn-primary" href="${link.url}" target="_blank" rel="noopener">${link.label}</a>`).join("");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      document.getElementById("modal-close").focus();
+    }
+    function closeModal() {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      if (lastFocus) lastFocus.focus();
+    }
+    gallery.addEventListener("click", event => {
+      const card = event.target.closest(".card");
+      if (card) openModal(card.dataset.id);
+    });
+    document.getElementById("modal-close").addEventListener("click", closeModal);
+    modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && modal.classList.contains("open")) closeModal();
+    });
+
+    const toggle = document.querySelector(".nav-toggle");
+    const navLinks = document.getElementById("nav-links");
+    toggle.addEventListener("click", () => {
+      const isOpen = navLinks.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", isOpen);
+    });
+    navLinks.querySelectorAll("a").forEach(link => link.addEventListener("click", () => {
+      navLinks.classList.remove("open");
+      toggle.setAttribute("aria-expanded", "false");
+    }));
+
+    const sectionLinks = navLinks.querySelectorAll("a[href^='#']");
+    const navObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          sectionLinks.forEach(link => link.classList.toggle("active", link.getAttribute("href") === `#${entry.target.id}`));
+        }
+      });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    document.querySelectorAll("main section[id]").forEach(section => navObserver.observe(section));
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
