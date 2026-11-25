@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Démineur 3D</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1d24; }
+    canvas { display: block; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// =====================================================================
+// CONFIGURATION
+// =====================================================================
+const CONFIG = {
+  cols: 9,
+  rows: 9,
+  mines: 10,
+  cellSize: 1,
+  cellGap: 0.08,
+  cellHeight: 0.4,
+  backThickness: 0.05,
+};
+
+const NUMBER_COLORS = [
+  null, '#2f6bff', '#2e9e44', '#e03a3a', '#1c2f9e',
+  '#9e1c1c', '#1c9e9e', '#222222', '#777777',
+];
+
+// =====================================================================
+// LOGIQUE DU JEU (pure, sans three.js)
+// =====================================================================
+class MinesweeperGame {
+  constructor(cols, rows, mines) {
+    this.cols = cols;
+    this.rows = rows;
+    this.mineCount = mines;
+    this.reset();
+  }
+
+  reset() {
+    this.generated = false;
+    this.state = 'ready'; // ready | playing | won | lost
+    this.revealedCount = 0;
+    this.flagCount = 0;
+    this.grid = Array.from({ length: this.rows }, () =>
+      Array.from({ length: this.cols }, () => ({
+        mine: false,
+        adjacent: 0,
+        revealed: false,
+        flagged: false,
+      }))
+    );
+  }
+
+  get isOver() { return this.state === 'won' || this.state === 'lost'; }
+
+  inBounds(c, r) {
+    return c >= 0 && c < this.cols && r >= 0 && r < this.rows;
+  }
+
+  neighbors(c, r) {
+    const out = [];
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dc === 0 && dr === 0) continue;
+        if (this.inBounds(c + dc, r + dr)) out.push([c + dc, r + dr]);
+      }
+    }
+    return out;
+  }
+
+  generate(safeC, safeR) {
+    const forbidden = new Set([`${safeC},${safeR}`]);
+    const maxMines = this.cols * this.rows - 1;
+    const protectNeighbors = this.mineCount <= this.cols * this.rows - 9;
+    if (protectNeighbors) {
+      for (const [nc, nr] of this.neighbors(safeC, safeR)) forbidden.add(`${nc},${nr}`);
+    }
+
+    const candidates = [];
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        if (!forbidden.has(`${c},${r}`)) candidates.push([c, r]);
+      }
+    }
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    }
+    const count = Math.min(this.mineCount, maxMines, candidates.length);
+    for (let i = 0; i < count; i++) {
+      const [c, r] = candidates[i];
+      this.grid[r][c].mine = true;
+    }
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        this.grid[r][c].adjacent = this.neighbors(c, r)
+          .filter(([nc, nr]) => this.grid[nr][nc].mine).length;
+      }
+    }
+    this.generated = true;
+    this.state = 'playing';
+  }
+
+  // Révèle une case et propage si besoin. Ajoute des événements à `events`.
+  // `depthBase` décale les profondeurs (utile pour le chording).
+  _revealCell(c, r, events, depthBase = 0) {
+    const cell = this.grid[r][c];
+    if (cell.revealed || cell.flagged) return;
+
+    if (cell.mine) {
+      cell.revealed = true;
+      this.state = 'lost';
+      events.push({ type: 'mine', c, r, hit: true });
+      return;
+    }
+
+    const queue = [[c, r, depthBase]];
+    cell.revealed = true;
+    this.revealedCount++;
+    while (queue.length) {
+      const [cc, cr, depth] = queue.shift();
+      const cur = this.grid[cr][cc];
+      events.push({ type: 'reveal', c: cc, r: cr, adjacent: cur.adjacent, depth });
+      if (cur.adjacent === 0) {
+        for (const [nc, nr] of this.neighbors(cc, cr)) {
+          const n = this.grid[nr][nc];
+          if (!n.revealed && !n.flagged && !n.mine) {
+            n.revealed = true;
+            this.revealedCount++;
+            queue.push([nc, nr, depth + 1]);
+          }
+        }
+      }
+    }
+  }
+
+  // Finalise l'état après une action : victoire, ou mines à faire exploser.
+  _finalize(events) {
+    if (this.state === 'lost') {
+      // Toutes les autres mines explosent (en blanc) ; les mauvais drapeaux sont signalés.
+      for (let r = 0; r < this.rows; r++) {
+        for (let c = 0; c < this.cols; c++) {
+          const cell = this.grid[r][c];
+          if (cell.mine && !cell.revealed && !cell.flagged) {
+            events.push({ type: 'mine', c, r, hit: false });
+          } else if (cell.mine && cell.flagged) {
+            // Mine correctement marquée : on la laisse intacte (comportement classique)
+          } else if (!cell.mine && cell.flagged) {
+            events.push({ type: 'wrongFlag', c, r });
+          }
+        }
+      }
+    } else if (this.revealedCount === this.cols * this.rows - this.mineCount) {
+      this.state = 'won';
+      // Pose automatiquement les drapeaux restants sur les mines
+      for (let r = 0; r < this.rows; r++) {
+        for (let c = 0; c < this.cols; c++) {
+          const cell = this.grid[r][c];
+          if (cell.mine && !cell.flagged) {
+            cell.flagged = true;
+            this.flagCount++;
+            events.push({ type: 'flag', c, r });
+          }
+        }
+      }
+    }
+  }
+
+  reveal(c, r) {
+    const events = [];
+    if (this.isOver || !this.inBounds(c, r)) return events;
+    if (!this.generated) this.generate(c, r);
+    this._revealCell(c, r, events);
+    this._finalize(events);
+    return events;
+  }
+
+  toggleFlag(c, r) {
+    const events = [];
+    if (this.isOver || !this.inBounds(c, r)) return events;
+    const cell = this.grid[r][c];
+    if (cell.revealed) return events;
+    cell.flagged = !cell.flagged;
+    this.flagCount += cell.flagged ? 1 : -1;
+    events.push({ type: cell.flagged ? 'flag' : 'unflag', c, r });
+    return events;
+  }
+
+  // Chording : sur une case révélée numérotée, si le nombre de drapeaux voisins
+  // égale son chiffre, on révèle toutes les voisines non marquées.
+  chord(c, r) {
+    const events = [];
+    if (this.isOver || !this.inBounds(c, r)) return events;
+    const cell = this.grid[r][c];
+    if (!cell.revealed || cell.adjacent === 0) return events;
+
+    const neigh = this.neighbors(c, r);
+    const flags = neigh.filter(([nc, nr]) => this.grid[nr][nc].flagged).length;
+    if (flags !== cell.adjacent) return events;
+
+    for (const [nc, nr] of neigh) {
+      if (this.state === 'lost') break;
+      this._revealCell(nc, nr, events, 0);
+    }
+    this._finalize(events);
+    return events;
+  }
+}
+
+// =====================================================================
+// SCÈNE THREE.JS
+// =====================================================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1d24);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(-16, 8, 9);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.target.set(0, 0, 0);
+controls.maxPolarAngle = Math.PI / 2.2;
+controls.mouseButtons = { LEFT: null, MIDDLE: THREE.MOUSE.ROTATE, RIGHT: null };
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+sun.position.set(6, 12, 6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10 });
+scene.add(sun);
+
+// ---------- Sol ----------
+const gridW = CONFIG.cols * CONFIG.cellSize;
+const gridH = CONFIG.rows * CONFIG.cellSize;
+
+
+const ground = new THREE.Mesh(
+  new THREE.BoxGeometry(gridW + 1, 0.3, gridH + 1),
+  new THREE.MeshStandardMaterial({ color: 0x2b303b, roughness: 0.9 })
+);
+ground.position.y = -CONFIG.cellHeight - 0.15 + 0.001;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// =====================================================================
+// PANNEAUX D'AFFICHAGE (timer / compteur de mines)
+// =====================================================================
+// Chaque panneau est un plan avec une CanvasTexture redessinée à la demande.
+function createDisplayPanel(label) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  const geometry = new THREE.PlaneGeometry(0.9, 0.45);
+  const material = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.4, emissive: 0x111111 });
+  const mesh = new THREE.Mesh(geometry, material);
+
+  // Petit boîtier derrière le panneau pour un rendu plus "mécanique".
+  const frame = new THREE.Mesh(
+    new THREE.BoxGeometry(1.02, 0.57, 0.08),
+    new THREE.MeshStandardMaterial({ color: 0x2a2e36, roughness: 0.6 })
+  );
+  frame.position.z = -0.045;
+  frame.castShadow = true;
+  frame.receiveShadow = true;
+
+  const group = new THREE.Group();
+  group.add(frame, mesh);
+
+  return { group, canvas, ctx, texture, label, lastText: null };
+}
+
+function drawDisplayPanel(panel, text) {
+  if (panel.lastText === text) return;
+  panel.lastText = text;
+  const { ctx, canvas } = panel;
+  ctx.fillStyle = '#10131a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#4b5160';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
+
+  ctx.fillStyle = '#9aa4b8';
+  ctx.font = 'bold 22px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(panel.label, canvas.width / 2, 10);
+
+  ctx.fillStyle = '#ff3b30';
+  ctx.font = 'bold 56px "Courier New", monospace';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 16);
+
+  panel.texture.needsUpdate = true;
+}
+
+const timerPanel = createDisplayPanel('TEMPS');
+const minesPanel = createDisplayPanel('MINES');
+timerPanel.group.scale.setScalar(3);
+minesPanel.group.scale.setScalar(3);
+timerPanel.group.position.set(-gridW / 2 - 0.3, 1.1, -gridH / 2 - 1.45);
+minesPanel.group.position.set(gridW / 2 + 0.3, 1.1, -gridH / 2 - 1.45);
+timerPanel.group.rotation.y = Math.PI / 10;
+minesPanel.group.rotation.y = -Math.PI / 10;
+scene.add(timerPanel.group, minesPanel.group);
+
+let elapsedSeconds = 0;
+function updateDisplays() {
+  const minesLeft = Math.max(0, game.mineCount - game.flagCount);
+  drawDisplayPanel(minesPanel, String(minesLeft).padStart(3, '0'));
+
+  if (game.state === 'playing') elapsedSeconds = Math.min(999, elapsedSeconds);
+  const shown = game.generated ? Math.floor(elapsedSeconds) : 0;
+  drawDisplayPanel(timerPanel, String(shown).padStart(3, '0'));
+}
+
+// =====================================================================
+// TEXTURES DES CHIFFRES
+// =====================================================================
+const numberTextures = [];
+function makeNumberTexture(n) {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#d9dde6';
+  ctx.fillRect(0, 0, size, size);
+  ctx.strokeStyle = '#b4bac8';
+  ctx.lineWidth = 10;
+  ctx.strokeRect(5, 5, size - 10, size - 10);
+
+  if (n > 0) {
+    ctx.fillStyle = NUMBER_COLORS[n];
+    ctx.font = 'bold 170px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(n), size / 2, size / 2 + 8);
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+for (let n = 0; n <= 8; n++) numberTextures[n] = makeNumberTexture(n);
+
+// =====================================================================
+// CASES 3D
+// =====================================================================
+const innerSize = CONFIG.cellSize - CONFIG.cellGap;
+const topGeometry = new THREE.BoxGeometry(innerSize, CONFIG.cellHeight, innerSize);
+const backGeometry = new THREE.BoxGeometry(innerSize, CONFIG.backThickness, innerSize);
+
+function makeBackMaterials(adjacent) {
+  const side = new THREE.MeshStandardMaterial({ color: 0xb4bac8, roughness: 0.6 });
+  const face = new THREE.MeshStandardMaterial({
+    map: numberTextures[adjacent], roughness: 0.5,
+  });
+  return [side, side, side, face, side, side];
+}
+
+function cellToWorld(col, row) {
+  return new THREE.Vector3(
+    (col - (CONFIG.cols - 1) / 2) * CONFIG.cellSize,
+    0,
+    (row - (CONFIG.rows - 1) / 2) * CONFIG.cellSize
+  );
+}
+
+// =====================================================================
+// DRAPEAU 3D
+// =====================================================================
+// Matériaux/géométries partagés entre tous les drapeaux.
+const poleGeometry = new THREE.CylinderGeometry(0.025, 0.035, 0.7, 10);
+const poleMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.5, roughness: 0.3 });
+const baseGeometry = new THREE.CylinderGeometry(0.14, 0.17, 0.06, 16);
+const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x333840, roughness: 0.7 });
+
+// Fanion : triangle pointant vers +X, légèrement plié pour mieux attraper la lumière.
+const pennantGeometry = (() => {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0.16);
+  shape.lineTo(0.38, 0);
+  shape.lineTo(0, -0.16);
+  shape.closePath();
+  return new THREE.ShapeGeometry(shape);
+})();
+const pennantMaterial = new THREE.MeshStandardMaterial({
+  color: 0xe63232, side: THREE.DoubleSide, roughness: 0.6,
+  emissive: 0x330000,
+});
+
+function createFlag() {
+  const flag = new THREE.Group();
+
+  const base = new THREE.Mesh(baseGeometry, baseMaterial);
+  base.position.y = 0.03;
+  base.castShadow = true;
+  flag.add(base);
+
+  const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+  pole.position.y = 0.06 + 0.35;
+  pole.castShadow = true;
+  flag.add(pole);
+
+  const pennant = new THREE.Mesh(pennantGeometry, pennantMaterial);
+  pennant.position.set(0.025, 0.06 + 0.7 - 0.17, 0);
+  pennant.castShadow = true;
+  flag.add(pennant);
+
+  flag.userData.pennant = pennant;
+  return flag;
+}
+
+// Croix rouge posée sur une case : signale un drapeau mal placé au game over.
+const crossMaterial = new THREE.MeshBasicMaterial({ color: 0xff2222 });
+function createCross() {
+  const g = new THREE.Group();
+  const geo = new THREE.BoxGeometry(0.75, 0.04, 0.12);
+  const a = new THREE.Mesh(geo, crossMaterial);
+  const b = new THREE.Mesh(geo, crossMaterial);
+  a.rotation.y = Math.PI / 4;
+  b.rotation.y = -Math.PI / 4;
+  g.add(a, b);
+  return g;
+}
+
+// =====================================================================
+// BONHOMME JAUNE SUR TABOURET (mascotte)
+// =====================================================================
+// Le visage est composé de vrais polygones noirs (yeux + bouche), construits
+// comme de petites formes plates (ExtrudeGeometry peu profonde) positionnées
+// devant la tête, plutôt qu'une texture appliquée sur un plan.
+// Trois expressions : 'normal' (yeux ronds), 'lost' (yeux en croix, triste),
+// 'won' (lunettes de soleil, sourire).
+const faceMaterial = new THREE.MeshBasicMaterial({ color: 0x1a1200, side: THREE.DoubleSide });
+const glassesMaterial = new THREE.MeshBasicMaterial({ color: 0x0d0d0d, side: THREE.DoubleSide });
+
+// Construit une forme 2D (Shape) à partir d'une liste de points [x, y].
+function shapeFromPoints(points) {
+  const shape = new THREE.Shape();
+  shape.moveTo(points[0][0], points[0][1]);
+  for (let i = 1; i < points.length; i++) shape.lineTo(points[i][0], points[i][1]);
+  shape.closePath();
+  return shape;
+}
+
+// Crée un mesh plat (faible épaisseur) à partir d'un contour de points, afin
+// de simuler un trait épais sans dépendre d'une texture.
+function flatShapeMesh(points, material = faceMaterial) {
+  const geo = new THREE.ExtrudeGeometry(shapeFromPoints(points), { depth: 0.012, bevelEnabled: false });
+  return new THREE.Mesh(geo, material);
+}
+
+// Construit un contour approximatif de cercle/ellipse (liste de points).
+function ellipsePoints(rx, ry, segments = 16) {
+  const pts = [];
+  for (let i = 0; i < segments; i++) {
+    const a = (i / segments) * Math.PI * 2;
+    pts.push([Math.cos(a) * rx, Math.sin(a) * ry]);
+  }
+  return pts;
+}
+
+// Construit le contour d'une barre rectangulaire épaisse, centrée à l'origine
+// et orientée le long de l'axe X (longueur 2*r, épaisseur `thickness`).
+// Combinée à une rotation de +/-45°, deux barres forment une croix.
+function barPoints(r, thickness) {
+  const h = thickness / 2;
+  return [[-r, -h], [r, -h], [r, h], [-r, h]];
+}
+
+// Construit un contour de sourire (croissant) à partir d'un arc épais.
+function smilePoints(r, thickness, startAngle, endAngle, segments = 12) {
+  const outer = [];
+  const inner = [];
+  for (let i = 0; i <= segments; i++) {
+    const a = startAngle + ((endAngle - startAngle) * i) / segments;
+    outer.push([Math.cos(a) * (r + thickness / 2), Math.sin(a) * (r + thickness / 2)]);
+  }
+  for (let i = segments; i >= 0; i--) {
+    const a = startAngle + ((endAngle - startAngle) * i) / segments;
+    inner.push([Math.cos(a) * (r - thickness / 2), Math.sin(a) * (r - thickness / 2)]);
+  }
+  return outer.concat(inner);
+}
+
+// Construit le groupe "visage" (yeux + bouche) pour une expression donnée.
+// Le groupe est positionné devant la tête via face.position (voir createMannequin).
+function createFace(mood) {
+  const face = new THREE.Group();
+  const eyeDx = 0.1;
+  // Coordonnées ajustées à la tête agrandie (rayon 0,32).
+  const eyeY = 0.12;
+  const mouthY = -0.045;
+
+  if (mood === 'won') {
+    // Lunettes de soleil : deux verres pleins reliés par un pont.
+    for (const side of [-1, 1]) {
+      const glass = flatShapeMesh(ellipsePoints(0.06, 0.045), glassesMaterial);
+      glass.position.set(side * eyeDx, eyeY, 0);
+      face.add(glass);
+    }
+    const bridge = flatShapeMesh([[-0.03, 0.012], [0.03, 0.012], [0.03, -0.012], [-0.03, -0.012]], glassesMaterial);
+    bridge.position.set(0, eyeY, 0);
+    face.add(bridge);
+    // Sourire content
+    const smile = flatShapeMesh(smilePoints(0.09, 0.018, 0.15 * Math.PI, 0.85 * Math.PI));
+    smile.position.set(0, (mouthY+0.08), 0);
+    smile.rotation.z = Math.PI;
+    face.add(smile);
+  } else if (mood === 'lost') {
+    // Yeux en croix : triste, perdu. Chaque œil = deux barres à +/-45°.
+    for (const side of [-1, 1]) {
+      const bar1 = flatShapeMesh(barPoints(0.076, 0.032));
+      const bar2 = flatShapeMesh(barPoints(0.076, 0.032));
+      bar1.rotation.z = Math.PI / 4;
+      bar2.rotation.z = -Math.PI / 4;
+      bar1.position.set(side * eyeDx, eyeY, 0);
+      bar2.position.set(side * eyeDx, eyeY, 0);
+      face.add(bar1, bar2);
+    }
+    // Utilise l'arc inférieur pour que les pointes soient plus basses (axe Y).
+    const frown = flatShapeMesh(smilePoints(0.08, 0.016, 0.2 * Math.PI, 0.8 * Math.PI));
+    frown.position.set(0, (mouthY-0.04), 0);
+    face.add(frown);
+  } else {
+    // Visage normal : yeux ronds, petit sourire neutre.
+    for (const side of [-1, 1]) {
+      const eye = flatShapeMesh(ellipsePoints(0.044, 0.044));
+      eye.position.set(side * eyeDx, eyeY, 0);
+      face.add(eye);
+    }
+    const smile = flatShapeMesh(smilePoints(0.08, 0.016, 0.2 * Math.PI, 0.8 * Math.PI));
+    smile.position.set(0, (mouthY+0.08), 0);
+    smile.rotation.z = Math.PI;
+    face.add(smile);
+  }
+
+  return face;
+}
+const faceGroups = {
+  normal: createFace('normal'),
+  lost: createFace('lost'),
+  won: createFace('won'),
+};
+
+// Le bonhomme : tabouret, jambes, buste, bras, tête avec visage interchangeable.
+const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xf5d948, roughness: 0.6 });
+const clothMaterial = new THREE.MeshStandardMaterial({ color: 0x3a6fd8, roughness: 0.7 });
+const woodMaterial = new THREE.MeshStandardMaterial({ color: 0x6b4a2e, roughness: 0.8 });
+
+function createMannequin() {
+  const root = new THREE.Group();
+  const stoolPivot = new THREE.Group();
+  const bodyPivot = new THREE.Group();
+
+  // Les pivots sont placés au bord arrière du tabouret pour que les deux
+  // éléments basculent vers l'arrière autour de leur point d'appui.
+  stoolPivot.position.set(0, 0, 0.32);
+  bodyPivot.position.set(0, 0, 0.32);
+  root.add(stoolPivot, bodyPivot);
+
+  // Tabouret
+  const stool = new THREE.Group();
+  stool.position.z = -0.32;
+  const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 20), woodMaterial);
+  seat.position.y = 0.59;
+  seat.castShadow = true;
+  seat.receiveShadow = true;
+  stool.add(seat);
+  const legGeo = new THREE.CylinderGeometry(0.035, 0.045, 0.55, 8);
+  for (const [dx, dz] of [[0.22, 0.22], [-0.22, 0.22], [0.22, -0.22], [-0.22, -0.22]]) {
+    const leg = new THREE.Mesh(legGeo, woodMaterial);
+    leg.position.set(dx, 0.275, dz);
+    leg.castShadow = true;
+    stool.add(leg);
+  }
+  stoolPivot.add(stool);
+
+  // Jambes : deux segments verticaux par jambe, de la hanche jusqu'au sol.
+  const upperThighGeo = new THREE.CylinderGeometry(0.085, 0.095, 0.42, 10);
+  const lowerThighGeo = new THREE.CylinderGeometry(0.085, 0.085, 0.42, 10);
+  for (const side of [-1, 1]) {
+    // Haut de cuisse incliné vers l'avant, entre le buste et le bas de cuisse.
+    const upperThigh = new THREE.Mesh(upperThighGeo, clothMaterial);
+    upperThigh.rotation.x = -Math.PI / 4;
+    upperThigh.position.set(side * 0.14, 0.68, 0.21);
+    upperThigh.castShadow = true;
+    bodyPivot.add(upperThigh);
+
+    // Bas de cuisse vertical, tombant vers le sol.
+    const lowerThigh = new THREE.Mesh(lowerThighGeo, clothMaterial);
+    lowerThigh.position.set(side * 0.14, 0.36, 0.34);
+    lowerThigh.castShadow = true;
+    bodyPivot.add(lowerThigh);
+  }
+
+  // Buste
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.4, 6, 10), clothMaterial);
+  torso.position.y = 1.05;
+  torso.castShadow = true;
+  bodyPivot.add(torso);
+
+  // Bras
+  const armGeo = new THREE.CapsuleGeometry(0.07, 0.38, 4, 8);
+  const arms = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const arm = new THREE.Mesh(armGeo, skinMaterial);
+    arm.position.set(side * 0.32, 1.0, 0.05);
+    arm.rotation.z = side * 0.35;
+    arm.castShadow = true;
+    arms.add(arm);
+  }
+  bodyPivot.add(arms);
+
+  // Tête (groupe séparé pour pouvoir pivoter indépendamment -> headTarget)
+  const headPivot = new THREE.Group();
+  headPivot.position.y = 1.42;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 20, 16), skinMaterial);
+  head.castShadow = true;
+  head.userData.isRestartTarget = true;
+  head.userData.baseEmissive = head.material.emissive.getHex();
+  headPivot.add(head);
+
+  // Le visage courant est un groupe de polygones (yeux + bouche) posé juste
+  // devant la tête ; on le change entièrement selon l'humeur (voir setMannequinMood).
+  let currentFace = faceGroups.normal.clone();
+  currentFace.position.set(0, 0, 0.313);
+  headPivot.add(currentFace);
+
+  bodyPivot.add(headPivot);
+
+  root.userData = { headPivot, torso, stoolPivot, bodyPivot, get face() { return currentFace; }, setFace(group) {
+    headPivot.remove(currentFace);
+    currentFace = group;
+    currentFace.position.set(0, 0, 0.313);
+    headPivot.add(currentFace);
+  } };
+  return root;
+}
+
+const mannequin = createMannequin();
+const mannequinScale = 3;
+mannequin.scale.setScalar(mannequinScale);
+// Les pieds du tabouret (y=0 local) reposent sur le dessus du sol.
+const groundTopY = ground.position.y + 0.15;
+mannequin.position.set(gridW / 2 + 3.8, groundTopY, 0);
+mannequin.rotation.y = -Math.PI / 2;
+scene.add(mannequin);
+
+const headPivot = mannequin.userData.headPivot;
+const stoolPivot = mannequin.userData.stoolPivot;
+const bodyPivot = mannequin.userData.bodyPivot;
+const fallAnimation = { elapsed: 0, duration: 0.8, active: false, from: 0, bodyTo: 0, stoolTo: 0 };
+const headTarget = new THREE.Vector3(0, 0.6, 0);
+let headLooksAtCamera = false;
+
+// Caler l'orientation initiale sur la cible par défaut pour éviter un mouvement
+// de rattrapage au chargement ; ensuite, le suivi reste animé normalement.
+{
+  const local = headPivot.worldToLocal(headTarget.clone());
+  headPivot.rotation.y = THREE.MathUtils.clamp(Math.atan2(local.x, local.z), -0.8, 0.8);
+  headPivot.rotation.x = THREE.MathUtils.clamp(
+    Math.atan2(-local.y, Math.hypot(local.x, local.z)),
+    -0.5,
+    0.5,
+  );
+}
+
+function setMannequinMood(mood) {
+  const group = faceGroups[mood] || faceGroups.normal;
+  mannequin.userData.setFace(group.clone());
+  headLooksAtCamera = mood === 'won';
+  if (mood === 'lost') startMannequinFall();
+}
+
+function startMannequinFall() {
+  if (fallAnimation.active) return;
+  fallAnimation.elapsed = 0;
+  fallAnimation.active = true;
+  fallAnimation.from = 0;
+  fallAnimation.bodyTo = Math.PI / 2.4;
+  fallAnimation.stoolTo = Math.PI / 2;
+}
+
+// Respiration du buste + tête qui suit doucement la case survolée (headTarget).
+function updateMannequin(dt, time) {
+  if (fallAnimation.active) {
+    fallAnimation.elapsed = Math.min(fallAnimation.elapsed + dt, fallAnimation.duration);
+    const t = fallAnimation.elapsed / fallAnimation.duration;
+    const eased = easeInOutCubic(t);
+    stoolPivot.rotation.x = THREE.MathUtils.lerp(fallAnimation.from, fallAnimation.stoolTo, eased);
+    bodyPivot.rotation.x = THREE.MathUtils.lerp(fallAnimation.from, fallAnimation.bodyTo, eased);
+    if (t >= 1) fallAnimation.active = false;
+    return;
+  }
+
+  const breathe = 1 + Math.sin(time * 1.6) * 0.02;
+  mannequin.userData.torso.scale.set(1, breathe, 1);
+
+  const target = headLooksAtCamera ? camera.getWorldPosition(new THREE.Vector3()) : headTarget;
+  const local = headPivot.worldToLocal(target.clone());
+  const targetRotY = Math.atan2(local.x, local.z);
+  const targetRotX = Math.atan2(-local.y, Math.hypot(local.x, local.z));
+  headPivot.rotation.y += (THREE.MathUtils.clamp(targetRotY, -0.8, 0.8) - headPivot.rotation.y) * Math.min(1, dt * 6);
+  headPivot.rotation.x += (THREE.MathUtils.clamp(targetRotX, -0.5, 0.5) - headPivot.rotation.x) * Math.min(1, dt * 6);
+}
+
+// =====================================================================
+// CRÉATION DE LA GRILLE
+// =====================================================================
+const game = new MinesweeperGame(CONFIG.cols, CONFIG.rows, CONFIG.mines);
+const cells = [];
+const pickables = [];
+
+for (let r = 0; r < CONFIG.rows; r++) {
+  cells[r] = [];
+  for (let c = 0; c < CONFIG.cols; c++) {
+    const group = new THREE.Group();
+    const base = cellToWorld(c, r);
+    const baseY = -CONFIG.cellHeight / 2 + 0.001;
+    group.position.set(base.x, baseY, base.z);
+
+    const top = new THREE.Mesh(
+      topGeometry,
+      new THREE.MeshStandardMaterial({ color: 0x8fa3c7, roughness: 0.5, metalness: 0.1 })
+    );
+    top.castShadow = true;
+    top.receiveShadow = true;
+    top.userData = { col: c, row: r };
+    group.add(top);
+
+    const back = new THREE.Mesh(backGeometry, makeBackMaterials(0));
+    back.position.y = -CONFIG.cellHeight / 2 - CONFIG.backThickness / 2;
+    back.castShadow = true;
+    back.receiveShadow = true;
+    back.visible = false;
+    group.add(back);
+
+    scene.add(group);
+    pickables.push(top);
+
+    // Le drapeau est ajouté à la SCÈNE (pas au groupe de la case) pour ne pas
+    // hériter de la rotation/soulèvement de la case. Sa position suit le survol.
+    cells[r][c] = {
+      group, top, back, baseY,
+      col: c, row: r,
+      hoverLift: 0,
+      anim: null,
+      sunk: false,
+      exploded: false,
+      flag: null,       // { object, t, appear: bool, removing: bool }
+      cross: null,
+    };
+  }
+}
+
+// =====================================================================
+// SYSTÈME DE PARTICULES (explosions)
+// =====================================================================
+// Un système = un THREE.Points avec ses propres tableaux de vélocités.
+// Gravité + fondu sur la durée de vie ; supprimé quand toutes les particules sont mortes.
+const particleSystems = [];
+
+function spawnExplosion(position, colorHex, count = 90) {
+  const positions = new Float32Array(count * 3);
+  const velocities = new Float32Array(count * 3);
+  const maxLife = new Float32Array(count);
+
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = position.x + (Math.random() - 0.5) * 0.3;
+    positions[i * 3 + 1] = position.y;
+    positions[i * 3 + 2] = position.z + (Math.random() - 0.5) * 0.3;
+
+    // Direction aléatoire sur une demi-sphère (surtout vers le haut)
+    const theta = Math.random() * Math.PI * 2;
+    const up = 0.4 + Math.random() * 0.6;
+    const spread = Math.sqrt(1 - up * up);
+    const speed = 2 + Math.random() * 4.5;
+    velocities[i * 3] = Math.cos(theta) * spread * speed;
+    velocities[i * 3 + 1] = up * speed * 1.4;
+    velocities[i * 3 + 2] = Math.sin(theta) * spread * speed;
+
+    maxLife[i] = 0.7 + Math.random() * 0.8;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const material = new THREE.PointsMaterial({
+    color: colorHex,
+    size: 0.16,
+    transparent: true,
+    opacity: 1,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    sizeAttenuation: true,
+  });
+
+  const points = new THREE.Points(geometry, material);
+  points.frustumCulled = false;
+  scene.add(points);
+
+  particleSystems.push({ points, geometry, material, velocities, maxLife, age: 0, count });
+}
+
+function updateParticles(dt) {
+  for (let s = particleSystems.length - 1; s >= 0; s--) {
+    const sys = particleSystems[s];
+    sys.age += dt;
+    const pos = sys.geometry.attributes.position.array;
+    let maxRemaining = 0;
+
+    for (let i = 0; i < sys.count; i++) {
+      const life = sys.maxLife[i];
+      if (sys.age >= life) {
+        pos[i * 3 + 1] = -100; // hors de vue
+        continue;
+      }
+      maxRemaining = Math.max(maxRemaining, life - sys.age);
+      sys.velocities[i * 3 + 1] -= 9 * dt; // gravité
+      pos[i * 3] += sys.velocities[i * 3] * dt;
+      pos[i * 3 + 1] += sys.velocities[i * 3 + 1] * dt;
+      pos[i * 3 + 2] += sys.velocities[i * 3 + 2] * dt;
+    }
+    sys.geometry.attributes.position.needsUpdate = true;
+    // Fondu global du système sur sa durée totale
+    sys.material.opacity = Math.max(0, Math.min(1, maxRemaining / 0.5));
+
+    if (maxRemaining <= 0) {
+      scene.remove(sys.points);
+      sys.geometry.dispose();
+      sys.material.dispose();
+      particleSystems.splice(s, 1);
+    }
+  }
+}
+
+// =====================================================================
+// ANIMATIONS
+// =====================================================================
+const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+const easeOutBack = (t) => {
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+};
+
+function startFlip(cell, adjacent, delay = 0) {
+  cell.back.material = makeBackMaterials(adjacent);
+  cell.back.visible = true;
+  cell.anim = { phase: 'wait', delay, t: 0, duration: 0.55, adjacent };
+}
+
+function updateCellAnim(cell, dt) {
+  const a = cell.anim;
+  if (!a) return;
+
+  if (a.phase === 'wait') {
+    a.delay -= dt;
+    if (a.delay <= 0) { a.phase = 'flip'; a.t = 0; }
+    return;
+  }
+
+  a.t += dt;
+  const k = Math.min(1, a.t / a.duration);
+
+  if (a.phase === 'flip') {
+    const e = easeInOutCubic(k);
+    cell.group.rotation.x = Math.PI * e;
+    cell.group.position.y = cell.baseY + Math.sin(Math.PI * k) * 0.9;
+    if (k >= 1) {
+      cell.group.rotation.x = Math.PI;
+      cell.group.position.y = cell.baseY;
+      if (a.adjacent === 0) {
+        a.phase = 'sink'; a.t = 0; a.duration = 0.4;
+      } else {
+        cell.anim = null;
+      }
+    }
+  } else if (a.phase === 'sink') {
+    const e = easeOutCubic(k);
+    cell.group.position.y = cell.baseY - e * (CONFIG.cellHeight * 0.85);
+    if (k >= 1) { cell.sunk = true; cell.anim = null; }
+  } else if (a.phase === 'explode') {
+    // La case est "soufflée" : petit sursaut puis disparition.
+    const e = easeOutCubic(k);
+    cell.group.position.y = cell.baseY + Math.sin(Math.PI * Math.min(1, k * 1.5)) * 0.35 - e * 0.1;
+    const s = 1 - easeOutCubic(Math.min(1, k * 1.2));
+    cell.group.scale.setScalar(Math.max(0.001, s));
+    if (k >= 1) {
+      cell.group.visible = false;
+      cell.anim = null;
+      if (a.countsTowardLoss) finishMineExplosion();
+    }
+  }
+}
+
+// ---------- Drapeaux : apparition / disparition ----------
+function cellSurfaceY(cell) {
+  return 0.001; // dessus de la case non révélée (y=0 monde)
+}
+
+function placeFlag(cell) {
+  if (cell.flag) return;
+  const obj = createFlag();
+  const p = cellToWorld(cell.col, cell.row);
+  obj.position.set(p.x, 0.001, p.z);
+  obj.scale.setScalar(0.001);
+  scene.add(obj);
+  cell.flag = { object: obj, t: 0, removing: false };
+}
+
+function removeFlag(cell) {
+  if (!cell.flag) return;
+  cell.flag.removing = true;
+  cell.flag.t = 0;
+}
+
+function updateFlag(cell, dt, time) {
+  const f = cell.flag;
+  if (!f) return;
+  f.t += dt;
+
+  if (!f.removing) {
+    // Apparition avec rebond
+    const k = Math.min(1, f.t / 0.4);
+    f.object.scale.setScalar(Math.max(0.001, easeOutBack(k)));
+    // Légère ondulation du fanion
+    const pennant = f.object.userData.pennant;
+    pennant.rotation.y = Math.sin(time * 4 + cell.col + cell.row) * 0.25;
+    // Suit le soulèvement de survol de la case
+    f.object.position.y = 0.001 + cell.hoverLift;
+  } else {
+    const k = Math.min(1, f.t / 0.2);
+    f.object.scale.setScalar(Math.max(0.001, 1 - easeOutCubic(k)));
+    if (k >= 1) {
+      scene.remove(f.object);
+      cell.flag = null;
+    }
+  }
+}
+
+// Explosion d'une case
+function explodeCell(cell, isHit, delay) {
+  cell.exploded = true;
+  const color = isHit ? 0xff2a1a : 0xffffff;
+
+  const timer = setTimeout(() => {
+    explosionTimers.delete(timer);
+    const p = cellToWorld(cell.col, cell.row);
+    spawnExplosion(new THREE.Vector3(p.x, 0.1, p.z), color, isHit ? 160 : 90);
+    if (isHit) {
+      // Seconde gerbe orangée pour plus d'impact sur la mine touchée
+      spawnExplosion(new THREE.Vector3(p.x, 0.1, p.z), 0xff8c1a, 70);
+    }
+    cell.anim = { phase: 'explode', t: 0, duration: 0.8, countsTowardLoss: true };
+    // Un éventuel drapeau est soufflé avec la case
+    if (cell.flag) removeFlag(cell);
+  }, delay * 1000);
+  explosionTimers.add(timer);
+}
+
+// =====================================================================
+// INTERACTIONS
+// =====================================================================
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2(-10, -10);
+const restartTarget = mannequin.userData.headPivot.children.find((child) => child.userData.isRestartTarget);
+let restartEnabled = true;
+let headHovered = false;
+let hovered = null;
+let pendingMineExplosions = 0;
+const explosionTimers = new Set();
+
+function finishMineExplosion() {
+  pendingMineExplosions = Math.max(0, pendingMineExplosions - 1);
+  if (pendingMineExplosions === 0) restartEnabled = true;
+}
+
+function pickCell(clientX, clientY) {
+  pointer.x = (clientX / innerWidth) * 2 - 1;
+  pointer.y = -(clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hit = raycaster.intersectObjects(pickables, false)[0];
+  if (!hit) return null;
+  const { col, row } = hit.object.userData;
+  return { col, row, cell: cells[row][col] };
+}
+
+function setHovered(next) {
+  if (next === hovered) return;
+  if (hovered) hovered.top.material.emissive.setHex(0x000000);
+  hovered = next;
+  if (hovered) hovered.top.material.emissive.setHex(0x223355);
+
+  // Le bonhomme regarde la case survolée ; sans survol, il regarde le centre du plateau.
+  if (hovered) {
+    const p = cellToWorld(hovered.col, hovered.row);
+    headTarget.set(p.x, 1.1, p.z);
+  } else {
+    headTarget.set(0, 0.6, 0);
+  }
+}
+
+renderer.domElement.addEventListener('pointermove', (e) => {
+  pointer.x = (e.clientX / innerWidth) * 2 - 1;
+  pointer.y = -(e.clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const nextHeadHovered = restartEnabled && raycaster.intersectObject(restartTarget, false).length > 0;
+  if (nextHeadHovered !== headHovered) {
+    headHovered = nextHeadHovered;
+    restartTarget.material.emissive.setHex(headHovered ? 0x5a4a00 : restartTarget.userData.baseEmissive);
+  }
+
+  if (game.isOver) { setHovered(null); return; }
+  const picked = pickCell(e.clientX, e.clientY);
+  // On survole les cases non révélées (pour clic/drapeau)
+  // ainsi que les cases révélées numérotées (pour le chording, sans effet de lift).
+  const next = picked && !game.grid[picked.row][picked.col].revealed ? picked.cell : null;
+  setHovered(next);
+});
+
+renderer.domElement.addEventListener('pointerleave', () => {
+  setHovered(null);
+  headHovered = false;
+  restartTarget.material.emissive.setHex(restartTarget.userData.baseEmissive);
+});
+
+// Distinction clic / glisser
+let downInfo = null;
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  downInfo = { x: e.clientX, y: e.clientY, button: e.button };
+});
+renderer.domElement.addEventListener('pointerup', (e) => {
+  if (!downInfo || downInfo.button !== e.button) return;
+  const moved = Math.hypot(e.clientX - downInfo.x, e.clientY - downInfo.y);
+  const button = downInfo.button;
+  downInfo = null;
+  if (moved > 5) return;
+
+  pointer.x = (e.clientX / innerWidth) * 2 - 1;
+  pointer.y = -(e.clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const headHit = restartEnabled && raycaster.intersectObject(restartTarget, false)[0];
+  if (headHit && button === 0) {
+    resetGame();
+    return;
+  }
+
+  const picked = pickCell(e.clientX, e.clientY);
+  if (!picked) return;
+
+  if (button === 0) handleLeftClick(picked.col, picked.row);
+  else if (button === 2) handleRightClick(picked.col, picked.row);
+});
+
+renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+
+addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'r') resetGame();
+});
+
+function handleLeftClick(c, r) {
+  const logic = game.grid[r][c];
+  let events;
+  if (logic.revealed) {
+    events = game.chord(c, r);        // clic sur une case numérotée : chording
+  } else if (logic.flagged) {
+    return;                           // clic gauche sur un drapeau : ignoré
+  } else {
+    events = game.reveal(c, r);
+  }
+  applyEvents(events);
+}
+
+function handleRightClick(c, r) {
+  applyEvents(game.toggleFlag(c, r));
+}
+
+// Traduit les événements logiques en effets visuels
+function applyEvents(events) {
+  let mineIndex = 0;
+  if (game.state === 'lost') {
+    restartEnabled = false;
+    pendingMineExplosions = events.filter((ev) => ev.type === 'mine').length;
+    headHovered = false;
+    restartTarget.material.emissive.setHex(restartTarget.userData.baseEmissive);
+  }
+  for (const ev of events) {
+    const cell = cells[ev.r][ev.c];
+    switch (ev.type) {
+      case 'reveal':
+        startFlip(cell, ev.adjacent, ev.depth * 0.06);
+        cell.top.material.emissive.setHex(0x000000);
+        break;
+      case 'flag':
+        placeFlag(cell);
+        break;
+      case 'unflag':
+        removeFlag(cell);
+        break;
+      case 'mine':
+        // La mine touchée explose immédiatement, les autres en cascade
+        explodeCell(cell, ev.hit, ev.hit ? 0 : 0.35 + mineIndex++ * 0.12);
+        break;
+      case 'wrongFlag':
+        if (!cell.cross) {
+          const x = createCross();
+          const p = cellToWorld(cell.col, cell.row);
+          x.position.set(p.x, 0.03, p.z);
+          scene.add(x);
+          cell.cross = x;
+        }
+        break;
+    }
+  }
+  if (game.state === 'lost') { setHovered(null); setMannequinMood('lost'); console.log('Game over'); }
+  if (game.state === 'won') { setHovered(null); setMannequinMood('won'); console.log('Victoire !'); }
+}
+
+function resetGame() {
+  explosionTimers.forEach((timer) => clearTimeout(timer));
+  explosionTimers.clear();
+  pendingMineExplosions = 0;
+  restartEnabled = true;
+  headHovered = false;
+  restartTarget.material.emissive.setHex(restartTarget.userData.baseEmissive);
+  game.reset();
+  elapsedSeconds = 0;
+  setMannequinMood('normal');
+  fallAnimation.elapsed = 0;
+  fallAnimation.active = false;
+  stoolPivot.rotation.set(0, 0, 0);
+  bodyPivot.rotation.set(0, 0, 0);
+  particleSystems.forEach((s) => { scene.remove(s.points); s.geometry.dispose(); s.material.dispose(); });
+  particleSystems.length = 0;
+
+  for (let r = 0; r < CONFIG.rows; r++) {
+    for (let c = 0; c < CONFIG.cols; c++) {
+      const cell = cells[r][c];
+      cell.anim = null;
+      cell.sunk = false;
+      cell.exploded = false;
+      cell.hoverLift = 0;
+      cell.group.visible = true;
+      cell.group.scale.setScalar(1);
+      cell.group.rotation.set(0, 0, 0);
+      cell.group.position.y = cell.baseY;
+      cell.back.visible = false;
+      cell.top.material.color.setHex(0x8fa3c7);
+      cell.top.material.emissive.setHex(0x000000);
+      if (cell.flag) { scene.remove(cell.flag.object); cell.flag = null; }
+      if (cell.cross) { scene.remove(cell.cross); cell.cross = null; }
+    }
+  }
+}
+
+// =====================================================================
+// BOUCLE PRINCIPALE
+// =====================================================================
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const time = clock.elapsedTime;
+
+  for (let r = 0; r < CONFIG.rows; r++) {
+    for (let c = 0; c < CONFIG.cols; c++) {
+      const cell = cells[r][c];
+      updateCellAnim(cell, dt);
+
+      if (!cell.anim && !game.grid[r][c].revealed && !cell.exploded) {
+        const target = cell === hovered ? 0.12 : 0;
+        cell.hoverLift += (target - cell.hoverLift) * Math.min(1, dt * 15);
+        cell.group.position.y = cell.baseY + cell.hoverLift;
+      }
+      updateFlag(cell, dt, time);
+    }
+  }
+
+  if (game.state === 'playing') elapsedSeconds += dt;
+  updateDisplays();
+  updateParticles(dt);
+  updateMannequin(dt, time);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
