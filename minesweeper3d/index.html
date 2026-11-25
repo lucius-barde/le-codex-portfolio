@@ -1030,6 +1030,15 @@ function setHovered(next) {
 }
 
 renderer.domElement.addEventListener('pointermove', (e) => {
+  if (
+    downInfo?.pointerId === e.pointerId &&
+    downInfo.longPressTimer &&
+    Math.hypot(e.clientX - downInfo.x, e.clientY - downInfo.y) > LONG_PRESS_MOVE
+  ) {
+    clearTimeout(downInfo.longPressTimer);
+    downInfo.longPressTimer = null;
+  }
+
   pointer.x = (e.clientX / innerWidth) * 2 - 1;
   pointer.y = -(e.clientY / innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
@@ -1053,17 +1062,47 @@ renderer.domElement.addEventListener('pointerleave', () => {
   restartTarget.material.emissive.setHex(restartTarget.userData.baseEmissive);
 });
 
-// Distinction clic / glisser
+// Distinction clic / glisser et détection de pression longue sur mobile
 let downInfo = null;
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_MOVE = 5;
+
 renderer.domElement.addEventListener('pointerdown', (e) => {
-  downInfo = { x: e.clientX, y: e.clientY, button: e.button };
+  if (downInfo?.longPressTimer) clearTimeout(downInfo.longPressTimer);
+  downInfo = {
+    x: e.clientX,
+    y: e.clientY,
+    button: e.button,
+    pointerId: e.pointerId,
+    longPressTriggered: false,
+    longPressTimer: null,
+  };
+
+  if (e.pointerType !== 'touch' || e.button !== 0 || game.isOver) return;
+
+  const picked = pickCell(e.clientX, e.clientY);
+  if (!picked) return;
+
+  downInfo.longPressTimer = setTimeout(() => {
+    if (!downInfo || downInfo.pointerId !== e.pointerId) return;
+
+    downInfo.longPressTriggered = true;
+    downInfo.longPressTimer = null;
+    handleRightClick(picked.col, picked.row);
+  }, LONG_PRESS_MS);
 });
+
 renderer.domElement.addEventListener('pointerup', (e) => {
-  if (!downInfo || downInfo.button !== e.button) return;
+  if (!downInfo || downInfo.pointerId !== e.pointerId || downInfo.button !== e.button) return;
+
+  if (downInfo.longPressTimer) clearTimeout(downInfo.longPressTimer);
+
   const moved = Math.hypot(e.clientX - downInfo.x, e.clientY - downInfo.y);
-  const button = downInfo.button;
+  const { button, longPressTriggered } = downInfo;
   downInfo = null;
-  if (moved > 5) return;
+
+  // La pression longue a déjà posé/retiré le drapeau.
+  if (longPressTriggered || moved > 5) return;
 
   pointer.x = (e.clientX / innerWidth) * 2 - 1;
   pointer.y = -(e.clientY / innerHeight) * 2 + 1;
@@ -1074,11 +1113,20 @@ renderer.domElement.addEventListener('pointerup', (e) => {
     return;
   }
 
+  // Le plateau reste inactif après la fin de partie, pendant les animations comme après.
+  if (game.isOver) return;
+
   const picked = pickCell(e.clientX, e.clientY);
   if (!picked) return;
 
   if (button === 0) handleLeftClick(picked.col, picked.row);
   else if (button === 2) handleRightClick(picked.col, picked.row);
+});
+
+renderer.domElement.addEventListener('pointercancel', (e) => {
+  if (!downInfo || downInfo.pointerId !== e.pointerId) return;
+  if (downInfo.longPressTimer) clearTimeout(downInfo.longPressTimer);
+  downInfo = null;
 });
 
 renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -1088,6 +1136,8 @@ addEventListener('keydown', (e) => {
 });
 
 function handleLeftClick(c, r) {
+  if (game.isOver) return;
+
   const logic = game.grid[r][c];
   let events;
   if (logic.revealed) {
@@ -1101,13 +1151,14 @@ function handleLeftClick(c, r) {
 }
 
 function handleRightClick(c, r) {
+  if (game.isOver) return;
   applyEvents(game.toggleFlag(c, r));
 }
 
 // Traduit les événements logiques en effets visuels
 function applyEvents(events) {
   let mineIndex = 0;
-  if (game.state === 'lost') {
+  if (game.state === 'lost' && events.some((ev) => ev.type === 'mine')) {
     restartEnabled = false;
     pendingMineExplosions = events.filter((ev) => ev.type === 'mine').length;
     headHovered = false;
